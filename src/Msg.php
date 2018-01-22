@@ -1,45 +1,32 @@
 <?php
+namespace Aliyun\Src;
 
-ini_set("display_errors", "on");
-
-require_once dirname(__DIR__) . '/msg_sdk/vendor/autoload.php';
-
-require_once __DIR__ . '/lib/TokenGetterForAlicom.php';
-require_once __DIR__ . '/lib/TokenForAlicom.php';
-
-use Aliyun\Core\Config;
 use AliyunMNS\Exception\MnsException;
-
-// 加载区域结点配置
-Config::load();
+use Aliyun\Alicom\TokenGetterForAlicom;
 
 /**
  * Class MsgDemo
  */
-class Msg 
+class Msg  extends  BaseSms
 {
-
     /**
      * @var TokenGetterForAlicom
      */
     static $tokenGetter = null;
 
-    public static function getTokenGetter() {
+    protected static $_instance = null;
+    
+    public  function getTokenGetter() {
 
         $accountId = "1943695596114318"; // 此处不需要替换修改!
-
-        // TODO 此处需要替换成开发者自己的AK (https://ak-console.aliyun.com/)
-
-        $accessKeyId = "yourAccessKeyId"; // AccessKeyId
-
-        $accessKeySecret = "yourAccessKeySecret"; // AccessKeySecret
-
+        
         if(static::$tokenGetter == null) {
-            static::$tokenGetter = new TokenGetterForAlicom(
+            static::$tokenGetter = new  TokenGetterForAlicom(
                 $accountId,
-                $accessKeyId,
-                $accessKeySecret);
+                static::$appKey,
+                static::$appSecret);
         }
+        
         return static::$tokenGetter;
     }
 
@@ -55,7 +42,7 @@ class Msg
      * <br/>(e.g. function ($message) { return true; }
      * </p>
      */
-    public static function receiveMsg($messageType, $queueName, callable $callback)
+    public  function receiveMsg($messageType, $queueName, callable $callback)
     {
         $i = 0;
         // 取回执消息失败3次则停止循环拉取
@@ -64,8 +51,8 @@ class Msg
             try
             {
                 // 取临时token
-                $tokenForAlicom = static::getTokenGetter()->getTokenByMessageType($messageType, $queueName);
-
+                $tokenForAlicom = $this->getTokenGetter()->getTokenByMessageType($messageType, $queueName);
+                
                 // 使用MNSClient得到Queue
                 $queue = $tokenForAlicom->getClient()->getQueueRef($queueName);
 
@@ -97,47 +84,16 @@ class Msg
             }
         }
     }
+    
+    /**
+     * 单例模式，唯一入口
+     */
+    public static  function getInstance()
+    {
+        if (self::$_instance === null) {
+            self::$_instance = new self();
+        }
+        return self::$_instance;
+    }
+    
 }
-
-// 调用示例：
-
-header('Content-Type: text/plain; charset=utf-8');
-
-echo "消息接口查阅短信状态报告返回结果:\n";
-Msg::receiveMsg(
-    // 消息类型，SmsReport: 短信状态报告
-    "SmsReport",
-
-    // 在云通信页面开通相应业务消息后，就能在页面上获得对应的queueName
-    "Alicom-Queue-xxxxxxxx-SmsReport",
-
-    /**
-     * 回调
-     * @param stdClass $message 消息数据
-     * @return bool 返回true，则工具类自动删除已拉取的消息。返回false，消息不删除可以下次获取
-     */
-    function ($message) {
-        print_r($message);
-        return false;
-    }
-);
-
-
-echo "消息接口查阅短信服务上行返回结果:\n";
-Msg::receiveMsg(
-    // 消息类型，SmsUp: 短信服务上行
-    "SmsUp",
-
-    // 在云通信页面开通相应业务消息后，就能在页面上获得对应的queueName
-    "Alicom-Queue-xxxxxxxx-SmsUp",
-
-    /**
-     * 回调
-     * @param stdClass $message 消息数据
-     * @return bool 返回true，则工具类自动删除已拉取的消息。返回false，消息不删除可以下次获取
-     */
-    function ($message) {
-        print_r($message);
-        return false;
-    }
-);

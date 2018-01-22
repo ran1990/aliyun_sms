@@ -15,7 +15,8 @@
 		}
 	],
 	"require" : {
-		"php" : ">=5.5.0"
+		"php" : ">=5.5.0",
+		"guzzlehttp/guzzle" : "~6.0"
 	},
 	"require-dev" : {
 		"phpunit/phpunit" : "~4.0"
@@ -24,6 +25,7 @@
 	"autoload" : {
 		"psr-4" : {
 			"Aliyun\\" : "lib/",
+			"Aliyun\\Src\\" : "src",
 			"Aliyun\\Test\\" : "tests/",
 			"AliyunMNS\\" : "lib/MNS",
 			"Aliyun\\Alicom\\" : "alicom"

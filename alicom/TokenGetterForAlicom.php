@@ -127,7 +127,6 @@ class TokenGetterForAlicom
         if(null == $tokenForAlicom || strtotime($tokenForAlicom->getExpireTime()) - time() > $this->bufferTime)
         {
             $tokenForAlicom =$this->getTokenFromRemote($messageType, $queueName);
-
             $client = new Client(
                 $this->mnsAccountEndpoint,
                 $tokenForAlicom->getTempAccessKey(),

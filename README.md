@@ -1,22 +1,21 @@
-yii2-wechat-sdk
+aliyun-dysms-php-sdk
 ===============
 
-感谢选择 yii2-wechat-sdk 扩展, 该扩展是基于[Yii2](https://github.com/yiisoft/yii2)框架基础开发,借助Yii2的强劲特性可以定制开发属于您自己的微信公众号
+感谢选择 aliyun-dysms-php-sdk 扩展, 该扩展是基于[Yii2](https://github.com/yiisoft/yii2)框架基础开发,借助Yii2的强劲特性可以定制开发属于您自己的短信服务
 
-[![Latest Stable Version](https://poser.pugx.org/callmez/yii2-wechat-sdk/v/stable.svg)](https://packagist.org/packages/callmez/yii2-wechat-sdk) [![Total Downloads](https://poser.pugx.org/callmez/yii2-wechat-sdk/downloads.svg)](https://packagist.org/packages/callmez/yii2-wechat-sdk) [![Latest Unstable Version](https://poser.pugx.org/callmez/yii2-wechat-sdk/v/unstable.svg)](https://packagist.org/packages/callmez/yii2-wechat-sdk) [![License](https://poser.pugx.org/callmez/yii2-wechat-sdk/license.svg)](https://packagist.org/packages/callmez/yii2-wechat-sdk)
+[![Latest Stable Version](https://poser.pugx.org/life2016/aliyun-dysms-php-sdk/version)](https://packagist.org/packages/life2016/aliyun-dysms-php-sdk)[![Total Downloads](https://poser.pugx.org/life2016/aliyun-dysms-php-sdk/downloads)](https://packagist.org/packages/life2016/aliyun-dysms-php-sdk)[![Latest Unstable Version](https://poser.pugx.org/life2016/aliyun-dysms-php-sdk/v/unstable)](//packagist.org/packages/life2016/aliyun-dysms-php-sdk)[![Monthly Downloads](https://poser.pugx.org/life2016/aliyun-dysms-php-sdk/d/monthly)](https://packagist.org/packages/life2016/aliyun-dysms-php-sdk)[![Daily Downloads](https://poser.pugx.org/life2016/aliyun-dysms-php-sdk/d/daily)](https://packagist.org/packages/life2016/aliyun-dysms-php-sdk)
 
 注意
 ---
-  ** 新版本正在重构中, 直到1.0正式版发布前.你依然可以继续使用功能 **
+  ** 该版本整合了阿里短信服务的aliyun-dysms-php-sdk，包含了发送短信，查询短信，短信消息模块
   
-  目前有3个主要文件可以使用
-  - `Wechat.php` 旧版微信公众号操作类(在新版[1.0]发布后会删除)
-  - `MpWechat.php` 新版微信公众号操作类(更标准,更完善), 如果您是新使用该库请按照文档说明替换旧版`Wechat.php`使用
-  - `QyWechat.php` 新版微信企业号操作类(为了更加全面的微信功能操作, 将在[1.1版本中完善发布]), 强势集成企业号功能
+  目前有2个主要文件
+  - `src\Sms.php` 短信发送API(SendSms)[这里](https://help.aliyun.com/document_detail/55451.html?spm=5176.doc55452.6.561.c9apum) && 短信查询API(QuerySendDetails)[这里](https://help.aliyun.com/document_detail/55452.html?spm=5176.doc55451.6.562.Qy7ncm)
+  - `src\Msg.php` 短信消息API[这里](https://help.aliyun.com/document_detail/55500.html?spm=5176.doc55452.6.563.JwgFiJ)
 
 环境条件
 --------
-- >= php5.4
+- >= php5.5
 - Yii2
 
 安装
@@ -27,104 +26,86 @@ yii2-wechat-sdk
 ```json
 {
     "require": {
-       "callmez/yii2-wechat-sdk": "dev-master"
+       "life2016/aliyun-dysms-php-sdk": "*"
     }
 }
 ```
 
 使用示例
 --------
-在使用前,请先参考微信公众平台的[开发文档](http://mp.weixin.qq.com/wiki/index.php?title=%E9%A6%96%E9%A1%B5)
+在使用前,请先参考阿里云平台的[开发文档](https://help.aliyun.com/document_detail/55451.html?spm=5176.10629532.106.2.4afa0f2e3l7djH)
 
-Wechat定义方式
+配置参数,
 ```php
-//在config/web.php配置文件中定义component配置信息
-'components' => [
-  .....
-  'wechat' => [
-    'class' => 'callmez\wechat\sdk\Wechat',
-    'appId' => '微信公众平台中的appid',
-    'appSecret' => '微信公众平台中的secret',
-    'token' => '微信服务器对接您的服务器验证token'
-  ]
-  ....
-]
-// 全局公众号sdk使用
-$wechat = Yii::$app->wechat; 
-
-
-//多公众号使用方式
-$wechat = Yii::createObject([
-    'class' => 'callmez\wechat\sdk\Wechat',
-    'appId' => '微信公众平台中的appid',
-    'appSecret' => '微信公众平台中的secret',
-    'token' => '微信服务器对接您的服务器验证token'
-]);
+   //在common\config\params.php配置文件中定义配置信息
+    return [
+    	......
+        'smsAppKey'=>'LTAIKG534543523',
+        'smsAppSecret'=>'1kqm43254546tgfdgfdfsrffgttetretI',
+        ......
+    ];
+```
+	1.发送短信(SendSms)
+```php
+	
+	$response  = Sms::getInstance()->sendSms($phone, $signName, $templateCode, $code);
+    $phone ,短信接收号码。支持以逗号分隔的形式进行批量调用，批量上限为1000个手机号码,批量调用相对于单条调用及时性稍有延迟,验证码类型的短信推荐使用单条调用的方式;
+    $signName,短信签名;
+    $templateCode 短信模板ID
+    $code 验证码
+    $outId 可选，设置流水号,未传参，默认YmdHis . time()
+    $upExtendCode 选填，上行短信扩展码（扩展码字段控制在7位或以下，无特殊需求用户请忽略此字段）
 ```
 
-Wechat方法使用(部分示例)
+2.查询短信(QuerySendDetails)
 ```php
-//获取access_token
-var_dump($wechat->accessToken);
+    $list = Sms::getInstance()->querySendDetails($phone, $date, $pageSize, $pageNo);
+    $phone 手机号
+    $date 年月日， 短信发送日期格式yyyyMMdd,支持最近30天记录查询
+    $pageSize 当前页码  页大小Max=50
+    $pageNo 当前页码
+    $bizId 选填，发送流水号,从调用发送接口返回值中获取
+```
 
-//获取二维码ticket
-$qrcode = $wechat->createQrCode([
-    'expire_seconds' => 604800,
-    'action_name' => 'QR_SCENE',
-    'action_info' => ['scene' => ['scene_id' => rand(1, 999999999)]]
-]);
-var_dump($qrcode);
-
-//获取二维码
-$imgRawData = $wechat->getQrCodeUrl($qrcode['ticket']);
-
-//获取群组列表
-var_dump($wechat->getGroups());
-
-
-//创建分组
-$group = $wechat->createGroup('测试分组');
-echo $group ? '测试分组创建成功' : '测试分组创建失败';
-
-//修改分组
-echo $wechat->updateGroupName($group['id'], '修改测试分组') ? '修改测试分组成功' : '测试分组创建失败';
-
-
-//根据关注者ID获取关注者所在分组ID
-$openID = 'oiNHQjh-8k4DrQgY5H7xofx_ayfQ'; //此处应填写公众号关注者的唯一openId
-
-//修改关注者所在分组
-echo $wechat->updateMemberGroup($openID, 1) ? '修改关注者分组成功' : '修改关注者分组失败';
-
-//获取关注者所在分组
-echo $wechat->getGroupId($openID);
-
-//修改关注者备注
-echo $wechat->updateMemberRemark($openID, '测试更改备注') ? '关注者备注修改成功' : '关注者备注修改失败';
-
-//获取关注者基本信息
-var_dump($wechat->getMemberInfo($openID));
-
-//获取关注者列表
-var_dump($wechat->getMemberList());
-
-//获取关注者的客服聊天记录, 
-var_dump($wechat->getCustomerServiceRecords($openID, mktime(0, 0, 0, 1, 1, date('Y')), time())); //获取今年的聊天数据(可能获取不到数据)
-
-//上传媒体文件
-$filePath = '图片绝对路径'; //目前微信只开发jpg上传
-var_dump($media = $wechat->uploadMedia(realpath($filePath), 'image'));
-
-//下载媒体文件
-echo $wechat->getMedia($media['media_id']) ? 'media下载成功' : 'media下载失败';
-
+3.短信消息
+```php
+		echo "消息接口查阅短信状态报告返回结果:\n";
+		MsgDemo::receiveMsg(
+		    // 消息类型，SmsReport: 短信状态报告
+		    "SmsReport",
+		    // 在云通信页面开通相应业务消息后，就能在页面上获得对应的queueName
+		    "Alicom-Queue-xxxxxxxx-SmsReport",
+		    /**
+		     * 回调
+		     * @param stdClass $message 消息数据
+		     * @return bool 返回true，则工具类自动删除已拉取的消息。返回false，消息不删除可以下次获取
+		     */
+		    function ($message) {
+		        print_r($message);
+		        return false;
+		    }
+		);
+		echo "消息接口查阅短信服务上行返回结果:\n";
+		MsgDemo::receiveMsg(
+		    // 消息类型，SmsUp: 短信服务上行
+		    "SmsUp",
+		    // 在云通信页面开通相应业务消息后，就能在页面上获得对应的queueName
+		    "Alicom-Queue-xxxxxxxx-SmsUp",
+		    /**
+		     * 回调
+		     * @param stdClass $message 消息数据
+		     * @return bool 返回true，则工具类自动删除已拉取的消息。返回false，消息不删除可以下次获取
+		     */
+		    function ($message) {
+		        print_r($message);
+		        return false;
+		    }
+		);
 ```
 
 反馈或贡献代码
 --------------
-您可以在[这里](https://github.com/callmez/yii2-wechat-sdk/issues)给我提出在使用中碰到的问题或Bug.
+您可以在[这里](https://github.com/ran1990/aliyun_sms)给我提出在使用中碰到的问题或Bug.
 我会在第一时间回复您并修复.
 
-您也可以 发送邮件callme-z@qq.com给我并且说明您的问题.
-
-如果你有更好代码实现,请fork项目并发起您的pull request.我会及时处理. 感谢!
+您也可以 发送邮件r503948796@163.com给我并且说明您的问题.

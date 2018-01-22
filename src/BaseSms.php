@@ -1,5 +1,7 @@
 <?php
-namespace Aliyun;
+namespace Aliyun\Src;
+
+use Aliyun\Core\Config;
 
 /**
  * Class BaseSms
@@ -9,10 +11,10 @@ namespace Aliyun;
  */
 class BaseSms
 {
-    public  $appKey;
-    public  $appSecret;
+    public static $appKey;
+    public static  $appSecret;
     
-    public function __construct(){
+    protected function __construct(){
         $config  = GlobalConfig::getInstance();
         
         if (!isset($config['appid']) || empty($config['appid'])) {
@@ -23,8 +25,11 @@ class BaseSms
             throw new \Exception('缺少appsecret参数');
         }
         
-        $this->appKey = $config['appid'];
-        $this->appSecret = $config['appsecret'];
+        static::$appKey = $config['appid'];
+        static::$appSecret = $config['appsecret'];
+        
+        // 加载区域结点配置
+        Config::load();
     }
     
     
